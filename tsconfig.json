@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "es2022",
+    "module": "commonjs",
+    "lib": ["dom", "es2022"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "outDir": ".erb/dll",
+    "paths": {
+      "@/*": ["./src/renderer/src/*"],
+      "@/styles/*": ["./src/renderer/styles/*"],
+      "@/components/*": ["./src/renderer/src/components/*"],
+      "@/pages/*": ["./src/renderer/src/pages/*"],
+      "@/utils/*": ["./src/renderer/src/utils/*"],
+      "@/assets/*": ["./src/renderer/src/assets/*"],
+    }
+  },
+  "exclude": ["test", "release/build", "release/app/dist", ".erb/dll"]
+}
