@@ -20,6 +20,7 @@
       "@/pages/*": ["./src/renderer/src/pages/*"],
       "@/utils/*": ["./src/renderer/src/utils/*"],
       "@/assets/*": ["./src/renderer/src/assets/*"],
+      "@/layouts/*": ["./src/renderer/src/layouts/*"],
     }
   },
   "exclude": ["test", "release/build", "release/app/dist", ".erb/dll"]
