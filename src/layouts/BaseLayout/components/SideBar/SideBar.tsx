@@ -1,10 +1,16 @@
-import { Link } from 'react-router-dom'
-import Workspace from './components/Workspace'
+import Workspace from "./components/Workspace";
+import data from "../../../../data/workspace";
+import Collections from "./components/Collections";
 
 export default function SideBar() {
   return (
-    <div>
-       <Workspace />   
-    </div>
-  )
+    <>
+      <header>
+        <Workspace workspace={data.name} />
+      </header>
+      <div>
+        <Collections collections={data.collections} />
+      </div>
+    </>
+  );
 }
