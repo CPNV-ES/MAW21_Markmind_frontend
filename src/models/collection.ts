@@ -1,7 +1,7 @@
 import {Model} from "./model.ts";
 
-export class Workspace extends Model {
-    protected static endpoint = "/workspaces"
+export class Collection extends Model {
+    protected static endpoint = "/collections"
 
     declare id:number
     declare name: string

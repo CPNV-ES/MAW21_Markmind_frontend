@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import {Workspace as WorkspaceModel} from "../../../../../models/workspace";
 import styles from "../SideBar.module.css";
 
 type WorkspaceJson = {id: number, name: string, updated_at: string, created_at: string}[];
@@ -10,9 +11,8 @@ const WorkspaceModal = ({ isOpen }: WorkspaceModalProps) => {
 
   useEffect(() => {
     (async () => {
-      const response = await fetch("http://localhost:3333/api/v1/workspaces");
-      const data = await response.json() as WorkspaceJson;
-      setWorkspaces(data);
+      const data = await WorkspaceModel.getAll();
+      console.log(data);
     })();
   });
 

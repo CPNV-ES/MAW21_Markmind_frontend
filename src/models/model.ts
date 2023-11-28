@@ -22,8 +22,8 @@ export type PaginateModel<T> = {
 
 export abstract class Model extends ApiService {
 
-    public static async getAll<T extends Model>(this: ApiServiceConstructor<T>, page: number = 1, options: RequestInit = {}): Promise<PaginateModel<T>> {
-        const request = await fetch(this.url(`?page=${page}`), {
+    public static async getAll<T extends Model>(this: ApiServiceConstructor<T>, options: RequestInit = {}): Promise<T[]> {
+        const request = await fetch(this.url(), {
             headers: {
                 'Content-Type' : "application/json",
                 'Accept': "application/json",
