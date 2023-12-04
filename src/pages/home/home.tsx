@@ -1,7 +1,8 @@
+import Editor from '../../components/Editor/Editor'
 import React from 'react'
 
 export default function Home() {
   return (
-    <div></div>
+    <Editor />
   )
 }
