@@ -1,11 +1,10 @@
 .sidebar {
-    width: 30%;
+    width: 20%;
     height: 100vh;
-    position: fixed;
     left: 0;
     top: 0;
-    padding: 10px;
-    flex:1;
+    background-color: #f5f5f5;
+    padding: 2vh 2vw;
 }
 
 .sidebar h1 {
