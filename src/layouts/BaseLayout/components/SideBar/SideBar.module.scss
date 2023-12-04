@@ -4,6 +4,12 @@ body{
     font-family: 'Roboto', sans-serif;
 }
 
+.main {
+    display : flex;
+    flex-direction : row;
+    justify-content : space-between
+}
+
 .sidebar {
     width: 30%;
     height: 100vh;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {Workspace as WorkspaceModel} from "../../../../../models/workspace";
-import styles from "../SideBar.module.css";
+import styles from "../SideBar.module.scss";
 
 type WorkspaceJson = {id: number, name: string, updated_at: string, created_at: string}[];
 
