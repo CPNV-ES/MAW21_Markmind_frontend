@@ -1,12 +1,13 @@
 import Workspace from "./components/Workspace";
 import data from "../../../../data/workspace";
 import Collections from "./components/Collections";
-import Style from "./SideBar.module.scss";
+import Styles from "./sideBar.module.scss";
 
 
 export default function SideBar() {
+  console.log(Styles)
   return (
-    <div className={Style.sideBar}>
+    <div className={Styles.sidebar}>
       <header>
         <Workspace workspace={data.name} />
       </header>
