@@ -1,0 +1,38 @@
+.editorToolbar {
+    display : flex;
+    position: absolute;
+    width: 35vw;
+    height: 65px;
+    bottom : 5vh;
+    left : 50%;
+    border-radius: 15px;
+    opacity: 0.5;
+    transition: opacity 0.5s ease-in-out;
+    background : #e8e5e5;
+    
+
+    &:hover {
+        opacity: 1;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: row;
+        list-style-type: none;
+        gap : .5vw;
+        justify-content: center;
+        align-items: center;
+
+        &__item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border : .5px solid #adacac;
+            padding : 5px;
+            cursor: pointer;
+            width: 50px;
+            height: 100%;
+            background: #fff;
+        }
+    }
+}

@@ -4,4 +4,12 @@
     gap : 3vw;
     width: 100vw;
     height: 100vh;
+    position: relative;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    flex: 3;
+    border: 1px solid #ccc;
 }

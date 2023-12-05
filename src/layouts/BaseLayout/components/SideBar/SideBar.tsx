@@ -5,7 +5,6 @@ import Styles from "./sideBar.module.scss";
 
 
 export default function SideBar() {
-  console.log(Styles)
   return (
     <div className={Styles.sidebar}>
       <header>
