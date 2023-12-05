@@ -1,7 +1,7 @@
 import Workspace from "./components/Workspace";
 import data from "../../../../data/workspace";
 import Collections from "./components/Collections";
-import Styles from "./SideBar.module.scss"
+import Styles from "./sideBar.module.scss";
 
 
 export default function SideBar() {
