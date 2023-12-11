@@ -27,3 +27,66 @@
     padding: 0;
     margin: 5px 0 5px 0;
 }
+
+.workspace_list{
+    list-style-type: none;
+}
+
+.modal {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 400px;
+    z-index: 1;
+  }
+  
+  .header {
+    background-color: #f5f5f5;
+    border-radius: 8px 8px 0 0;
+    padding: 10px 15px;
+    text-align: left;
+  }
+  
+  .createButton {
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin-top: 10px;
+    cursor: pointer;
+  }
+  
+  .workspaceList {
+    padding: 20px 0;
+  }
+  
+  .workspaceItem {
+    list-style-type: none;
+  }
+  
+  .workspaceButton {
+    background-color: #f0f0f0;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+  
+  .workspaceButton h2 {
+    margin: 0;
+  }
+
+  .row {
+    display: flex; /* Active Flexbox */
+    justify-content: space-between; /* Répartit l'espace entre les éléments enfants */
+    align-items: center; /* Centre les éléments verticalement */
+}
+
+.buttons {
+    display: flex; /* Assure que les boutons sont également alignés avec flex */
+}
+  
