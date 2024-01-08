@@ -2,7 +2,7 @@
 
 ## Backlogs
 
-You can find our project backlog in Documentation/CDC
+You can find our project backlog in docs/CDC.md
 
 ## Get started
 
