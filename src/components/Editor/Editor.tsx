@@ -27,6 +27,29 @@ export default function Editor() {
     setHtml(rawHtml);
   }
 
+  const isFormatted = (text, format) => {
+    const regex = new RegExp(`^${format}.*${format}$`);
+    return regex.test(text);
+  };
+
+  const toggleFormat = (text, format) => {
+    if (isFormatted(text, format)) {
+      return text.replace(new RegExp(format, 'g'), '');
+    }
+    return `${format}${text}${format}`;
+  };
+  const handleKeepTextFormat = (text, format) => {
+    switch (format) {
+      case 'B':
+        return toggleFormat(text, '**');
+      case 'I':
+        return toggleFormat(text, '*');
+      case 'U':
+        return isFormatted(text, '<u>') ? text.replace(/<\/?u>/g, '') : `<u>${text}</u>`;
+      default:
+        return text;
+    }
+  };
 
   useEffect(() => {
     formatMarkdown();
@@ -34,37 +57,15 @@ export default function Editor() {
   }, [editorState]);
 
 
-  const handleTextChange = (format, option) => {
-    // ajoute le format markdown au texte sélectionné à partir du tableau de format
+  const handleTextChange = async (format, option) => {
     if (format.length > 0 && selectedText.length > 0) {
-      let newFormatedText = ""
-      format.forEach((format) => {
-        switch (format) {
-          case "B":
-            newFormatedText = `**${selectedText}**`
-            break;
-          case "I":
-            newFormatedText = `*${selectedText}*`
-            break;
-          case "U":
-            newFormatedText = `<u>${selectedText}</u>`
-            break;
-          case "LINK":
-            newFormatedText = `[${selectedText}](${option})`
-            break;
-          case "IMAGE":
-            newFormatedText = `![${selectedText}](${option})`
-            break;
-          case "CODE":
-            newFormatedText = `\`\`\`${selectedText}\`\`\``
-            break;
-          default:
-            break;
-        }
-      })
-      setEditorState(editorState.replace(selectedText, newFormatedText));
+      let newFormattedText = selectedText;
+      format.forEach((f) => {
+        newFormattedText = handleKeepTextFormat(newFormattedText, f);
+      });
+      setEditorState(editorState.replace(selectedText, newFormattedText));
     }
-  }
+  };
 
   return (
     <>
