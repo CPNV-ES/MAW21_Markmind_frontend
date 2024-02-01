@@ -1,47 +1,68 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, Component, useEffect } from 'react';
+import { EditorState, convertToRaw, convertFromRaw } from 'draft-js';
+import { Editor } from 'react-draft-wysiwyg';
+import draftToMarkdown from 'draftjs-to-markdown';
+import { markdownToDraft } from 'markdown-draft-js';
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import editorStyle from './Editor.module.scss';
 import data from "../../data/workspace";
-import {
-  MDXEditor, toolbarPlugin, listsPlugin, quotePlugin, headingsPlugin, linkPlugin, linkDialogPlugin, imagePlugin, tablePlugin, thematicBreakPlugin, frontmatterPlugin, codeBlockPlugin, sandpackPlugin, codeMirrorPlugin, directivesPlugin, diffSourcePlugin, markdownShortcutPlugin, UndoRedo, BoldItalicUnderlineToggles,
-} from '@mdxeditor/editor';
-import '@mdxeditor/editor/style.css';
+import { Settings } from 'lucide-react';
+import EditorSetting from './EditorSetting';
 
-const MarkdownEditor = () => {
+
+export default function MarkdownEditor() {
   const [markdown, setMarkdown] = useState(data.collections[0].resources[0].content);
+  const [editorSettings, setEditorSettings] = useState({
+    isOpen: false,
+    autoSave: true,
+    saveInterval: 10,
+    backgroundColor: '#000',
+    textColor: '#000',
+    fontSize: '16px',
+    fontFamily: 'Arial',
+  });
 
-  const handleMarkdownChange = (newMarkdown) => {
-    setMarkdown(newMarkdown);
+  const [editorState, setEditorState] = useState(() => {
+    const content = markdownToDraft(markdown);
+    return EditorState.createWithContent(convertFromRaw(content));
+  });
+
+  const handleEditorStateChange = (newEditorState) => {
+    setEditorState(newEditorState);
   };
 
+  const getMarkdownOutput = () => {
+    const content = editorState.getCurrentContent();
+    return draftToMarkdown(convertToRaw(content));
+  };
+
+  const saveContent = () => {
+    setMarkdown(getMarkdownOutput());
+  }
+
+  //useEffect to save content all 10 seconds and if content is changed
+  useEffect(() => {
+    const interval = setInterval(() => {
+      saveContent();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [markdown]);
+
   return (
-    <MDXEditor
-      markdown={markdown}
-      plugins={[
-        toolbarPlugin({
-          toolbarContents: () => (
-            <>
-              {' '}
-              <UndoRedo />
-              <BoldItalicUnderlineToggles />
-            </>
-          ),
-        }),
-        listsPlugin(),
-        quotePlugin(),
-        headingsPlugin(),
-        linkPlugin(),
-        linkDialogPlugin(),
-        imagePlugin(),
-        tablePlugin(),
-        thematicBreakPlugin(),
-        frontmatterPlugin(),
-        codeBlockPlugin({ defaultCodeBlockLanguage: 'txt' }),
-        codeMirrorPlugin({ codeBlockLanguages: { js: 'JavaScript', css: 'CSS', txt: 'text', tsx: 'TypeScript' } }),
-        diffSourcePlugin({ viewMode: 'rich-text', diffMarkdown: 'boo' }),
-        markdownShortcutPlugin()]}
-      onChange={handleMarkdownChange}
-    />
+    <>
+      <div className={editorStyle.settings}>
+        <button onClick={() => setEditorSettings({ ...editorSettings, isOpen: !editorSettings.isOpen })}> <Settings /> </button>
+        {editorSettings.isOpen && (
+          <EditorSetting settings={editorSettings} />
+        )}
+      </div>
+      <Editor style={{ backgroundColor: editorSettings.backgroundColor, color: editorSettings.textColor, fontSize: editorSettings.fontSize, fontFamily: editorSettings.fontFamily }}
+        editorState={editorState}
+        onEditorStateChange={handleEditorStateChange}
+        toolbarClassName={editorStyle.toolbar}
+        wrapperClassName={editorStyle.customEditor}
+      />
+    </>
+
   );
 };
-
-export default MarkdownEditor;
