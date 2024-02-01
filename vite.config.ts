@@ -22,4 +22,7 @@ export default defineConfig({
       renderer: {},
     }),
   ],
+  define: {
+    global: {},
+  }
 })
