@@ -1,7 +1,8 @@
-import React from 'react'
+import Editor from "../../components/Editor/Editor";
+import React from "react";
+import { useParams } from "react-router-dom";
 
 export default function Home() {
-  return (
-    <div>home</div>
-  )
+  const { workspaceId } = useParams();
+  return <Editor />;
 }

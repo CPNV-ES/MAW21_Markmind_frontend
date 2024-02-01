@@ -1,0 +1,1 @@
+export const ENDPOINT_URL = "http://localhost:3333/api/v1"
