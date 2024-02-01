@@ -8,6 +8,7 @@ import editorStyle from './Editor.module.scss';
 import data from "../../data/workspace";
 import { Settings } from 'lucide-react';
 import EditorSetting from './EditorSetting';
+import CommandSuggestion from './CommandSuggestion';
 
 
 export default function MarkdownEditor() {
@@ -21,6 +22,10 @@ export default function MarkdownEditor() {
     fontSize: '16px',
     fontFamily: 'Arial',
   });
+  const [showCommands, setShowCommands] = useState(false);
+  const [currentCommand, setCurrentCommand] = useState("");
+
+
 
   const [editorState, setEditorState] = useState(() => {
     const content = markdownToDraft(markdown);
@@ -28,7 +33,37 @@ export default function MarkdownEditor() {
   });
 
   const handleEditorStateChange = (newEditorState) => {
+    const currentContent = newEditorState.getCurrentContent();
+    const selectionState = newEditorState.getSelection();
+    const anchorKey = selectionState.getAnchorKey();
+    const currentBlock = currentContent.getBlockForKey(anchorKey);
+    const blockText = currentBlock.getText();
+    const startOffset = selectionState.getStartOffset();
+
+    // Trouver la position du dernier "/" dans le bloc de texte.
+    const slashIndex = blockText.lastIndexOf("/", startOffset);
+
+    if (slashIndex !== -1) {
+      const command = blockText.slice(slashIndex + 1, startOffset);
+      setShowCommands(true);
+      setCurrentCommand(command);
+    } else {
+      setShowCommands(false);
+    }
+
     setEditorState(newEditorState);
+  };
+
+  const getCursorPos = () => {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return { x: 0, y: 0 };
+    const range = selection.getRangeAt(0).cloneRange();
+    range.collapse(true);
+    const rect = range.getClientRects()[0];
+    if (rect) {
+      return { x: rect.left, y: rect.bottom }; // Position en bas à gauche du curseur
+    }
+    return { x: 0, y: 0 };
   };
 
   const getMarkdownOutput = () => {
@@ -74,7 +109,23 @@ export default function MarkdownEditor() {
         onEditorStateChange={handleEditorStateChange}
         toolbarClassName={editorStyle.toolbar}
         wrapperClassName={editorStyle.customEditor}
+        toolbarOnFocus
       />
+      {showCommands && (
+        <CommandSuggestion
+          command={currentCommand}
+          onSelect={(markdown) => {
+            handleCommandSelect(markdown);
+            setShowCommands(false);
+            setCurrentCommand("");
+          }}
+          onClose={() => {
+            setShowCommands(false);
+            setCurrentCommand("");
+          }}
+          position={getCursorPos()}
+        />
+      )}
     </>
 
   );

@@ -22,6 +22,7 @@
     z-index: 10; // Ajustez si nécessaire pour s'assurer qu'elle est au-dessus des autres éléments
     opacity: 0.4;
     border-radius: 20px;
+    z-index: 15;
 
     &__button {
         background-color: #e81919;
