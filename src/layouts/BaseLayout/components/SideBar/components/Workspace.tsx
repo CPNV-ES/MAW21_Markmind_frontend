@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
+import { PropsWithChildren, useEffect, useState } from "react";
 import { Workspace as WorkspaceModel } from "../../../../../models/workspace";
+import { useNavigate } from "react-router-dom";
+import { Resource as ResourceModel } from "../../../../../models/resource";
 import styles from "../SideBar.module.scss";
+import { CiCirclePlus, CiTrash } from "react-icons/ci";
 
 type WorkspaceJson = {
   id: number;
@@ -9,9 +12,38 @@ type WorkspaceJson = {
   created_at: string;
 }[];
 
+const WorkspaceItem = ({
+  children,
+  id,
+  onClick,
+}: PropsWithChildren & { id: number; onClick?: (id: number) => void }) => {
+  const handleDeleteClick = async () => {
+    await WorkspaceModel.delete(id);
+  };
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick(id);
+    }
+  };
+
+  return (
+    <li onClick={handleClick} className={styles.workspace_modal_item}>
+      <div className={styles.row}>
+        <div className={styles.workspace_modal_item_name}>{children}</div>
+        <div className={styles.buttons} onClick={handleDeleteClick}>
+          <CiTrash size={20} />
+        </div>
+      </div>
+    </li>
+  );
+};
+
 type WorkspaceModalProps = { isOpen: boolean };
 const WorkspaceModal = ({ isOpen }: WorkspaceModalProps) => {
   const [workspaces, setWorkspaces] = useState<WorkspaceJson>([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -20,29 +52,26 @@ const WorkspaceModal = ({ isOpen }: WorkspaceModalProps) => {
     })();
   });
 
+  const handleClick = (id: number) => {
+    navigate(`/${id}`);
+  };
+
   if (!isOpen) {
     return null;
   }
 
   return (
     <div className={styles.modal}>
-      <div className={styles.header}>
-        <div className={styles.row}>
-          <h1>Workspaces</h1>
-          <div className={styles.buttons}>
-            <button>Bouton 1</button>
-            <button>Bouton 2</button>
-          </div>
-        </div>
-      </div>
-      <div className={styles.workspaceList}>
-        <ul>
+      <div>
+        <ul className={styles.workspaceList}>
           {workspaces.map((workspace) => (
-            <li key={workspace.id} className={styles.workspaceItem}>
-              <button className={styles.workspaceButton}>
-                <h2>{workspace.name}</h2>
-              </button>
-            </li>
+            <WorkspaceItem
+              id={workspace.id}
+              key={workspace.id}
+              onClick={handleClick}
+            >
+              {workspace.name}
+            </WorkspaceItem>
           ))}
         </ul>
       </div>
@@ -50,7 +79,7 @@ const WorkspaceModal = ({ isOpen }: WorkspaceModalProps) => {
   );
 };
 
-type WorkspaceProps = { workspace: string };
+type WorkspaceProps = { workspace: string | undefined | null };
 export default function Workspace({ workspace }: WorkspaceProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -60,9 +89,7 @@ export default function Workspace({ workspace }: WorkspaceProps) {
 
   return (
     <div onClick={handleClick}>
-      <div className={styles.btn_current_workspace}>
-        <h1>{workspace}</h1>
-      </div>
+      <h1>{workspace ? workspace : "Choisir un workspace"}</h1>
       <WorkspaceModal isOpen={isOpen} />
     </div>
   );

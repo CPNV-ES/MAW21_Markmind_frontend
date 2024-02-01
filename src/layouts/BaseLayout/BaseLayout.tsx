@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 import SideBar from "./components/SideBar/SideBar";
-import Styles from "./baseLayout.module.scss"
+import Styles from "./baseLayout.module.scss";
 
 export default function BaseLayout() {
   return (

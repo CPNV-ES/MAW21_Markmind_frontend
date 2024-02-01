@@ -49,7 +49,7 @@ export abstract class Model extends ApiService {
             const errors = await request.json()
             throw new ModelErrors(errors.message,request.status, errors.errors)
         }
-        return (await request.json()).data
+        return (await request.json())
     }
 
     public static async update<T extends Model>(this: ApiServiceConstructor<T>, id: number | string, data: Data, options: RequestInit = {}): Promise<T> {
