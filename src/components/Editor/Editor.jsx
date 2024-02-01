@@ -38,12 +38,25 @@ export default function MarkdownEditor() {
 
   const saveContent = () => {
     setMarkdown(getMarkdownOutput());
+    console.log("Saved");
   }
+
+  const handleSettingsChange = (autoSaveValue) => {
+    setEditorSettings((prevSettings) => ({
+      ...prevSettings,
+      autoSave: autoSaveValue,
+    }));
+  };
+  const toggleSettings = () => {
+    setEditorSettings({ ...editorSettings, isOpen: !editorSettings.isOpen });
+    console.log("Is Open:", !editorSettings.isOpen);
+  };
 
   //useEffect to save content all 10 seconds and if content is changed
   useEffect(() => {
     const interval = setInterval(() => {
-      saveContent();
+      editorSettings.autoSave &&
+        saveContent();
     }, 10000);
     return () => clearInterval(interval);
   }, [markdown]);
@@ -51,11 +64,11 @@ export default function MarkdownEditor() {
   return (
     <>
       <div className={editorStyle.settings}>
-        <button onClick={() => setEditorSettings({ ...editorSettings, isOpen: !editorSettings.isOpen })}> <Settings /> </button>
-        {editorSettings.isOpen && (
-          <EditorSetting settings={editorSettings} />
-        )}
+        <button onClick={toggleSettings}> <Settings /> </button>
       </div>
+      {
+        editorSettings.isOpen && <EditorSetting settings={editorSettings} onSettingsChange={handleSettingsChange} />
+      }
       <Editor style={{ backgroundColor: editorSettings.backgroundColor, color: editorSettings.textColor, fontSize: editorSettings.fontSize, fontFamily: editorSettings.fontFamily }}
         editorState={editorState}
         onEditorStateChange={handleEditorStateChange}

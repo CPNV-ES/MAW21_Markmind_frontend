@@ -1,9 +1,3 @@
-.editor {
-    position: relative !important;
-    top: initial !important;
-}
-
-
 .customEditor {
     display: flex;
     flex-direction: column;
@@ -12,6 +6,7 @@
     position: relative; // Important pour le positionnement absolu de la barre d'outils
     height: 100vh; // Assurez-vous que cette hauteur est appropriée pour votre mise en page
     padding: 1rem 0.5rem 0 1rem;
+    width: 100%;
 }
 
 
@@ -23,7 +18,7 @@
     border-top: 1px solid #ccc;
     position: absolute;
     bottom: 10%;
-    width: 100%; // Assure la largeur complète
+    width: 95%; // Assure la largeur complète
     z-index: 10; // Ajustez si nécessaire pour s'assurer qu'elle est au-dessus des autres éléments
     opacity: 0.4;
     border-radius: 20px;
@@ -44,9 +39,11 @@
     position: absolute;
     top: 1%;
     right: 1%;
+    z-index: 100;
 
     &>button {
         background: none;
         border: none;
+        cursor: pointer;
     }
 }
