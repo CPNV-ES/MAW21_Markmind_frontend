@@ -1,9 +1,9 @@
 import { PropsWithChildren, useEffect, useState } from "react";
-import { Workspace as WorkspaceModel } from "../../../../../models/workspace";
+import { CiTrash } from "react-icons/ci";
 import { useNavigate } from "react-router-dom";
-import { Resource as ResourceModel } from "../../../../../models/resource";
+import Modal from "../../../../../components/Modal/Modal";
+import { Workspace as WorkspaceModel } from "../../../../../models/workspace";
 import styles from "../SideBar.module.scss";
-import { CiCirclePlus, CiTrash } from "react-icons/ci";
 
 type WorkspaceJson = {
   id: number;
@@ -61,7 +61,7 @@ const WorkspaceModal = ({ isOpen }: WorkspaceModalProps) => {
   }
 
   return (
-    <div className={styles.modal}>
+    <Modal isOpen={isOpen}>
       <div>
         <ul className={styles.workspaceList}>
           {workspaces.map((workspace) => (
@@ -75,7 +75,7 @@ const WorkspaceModal = ({ isOpen }: WorkspaceModalProps) => {
           ))}
         </ul>
       </div>
-    </div>
+    </Modal>
   );
 };
 

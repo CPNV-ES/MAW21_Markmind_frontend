@@ -1,10 +1,10 @@
-import Workspace from "./components/Workspace";
-import { Workspace as WorkspaceModel } from "../../../../models/workspace";
-import Collections from "./components/Collections";
-import styles from "./SideBar.module.scss";
-import { ModelErrors } from "../../../../exceptions/modelErrors";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { ModelErrors } from "../../../../exceptions/modelErrors";
+import { Workspace as WorkspaceModel } from "../../../../models/workspace";
+import styles from "./SideBar.module.scss";
+import Collections from "./components/Collections";
+import Workspace from "./components/Workspace";
 
 export default function SideBar() {
   const [currentWorkspace, setCurrentWorkspace] = useState<WorkspaceModel>();
