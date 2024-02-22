@@ -9,9 +9,14 @@ import data from "../../data/workspace";
 import { Settings } from 'lucide-react';
 import EditorSetting from './EditorSetting';
 import CommandSuggestion from './CommandSuggestion';
+import { Resource } from '../../models/resource';
+import { useParams } from 'react-router-dom';
 
 
 export default function MarkdownEditor() {
+  const { workspaceId } = useParams();
+  console.log(useParams());
+
   const [markdown, setMarkdown] = useState(data.collections[0].resources[0].content);
   const [editorSettings, setEditorSettings] = useState({
     isOpen: false,
@@ -86,6 +91,21 @@ export default function MarkdownEditor() {
     setEditorSettings({ ...editorSettings, isOpen: !editorSettings.isOpen });
     console.log("Is Open:", !editorSettings.isOpen);
   };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const resource = await Resource.getOne(parseInt(workspaceId) || 0);
+        setMarkdown(resource.content);
+      }
+      catch (error) {
+        console.error(error);
+      }
+    }
+    )();
+  }, [workspaceId]);
+
+
 
   //useEffect to save content all 10 seconds and if content is changed
   useEffect(() => {

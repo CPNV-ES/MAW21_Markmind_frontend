@@ -1,10 +1,10 @@
-import {ApiService, Data, Method} from "../services/api/apiService.ts";
-import {ModelErrors} from "../exceptions/modelErrors.ts";
-import {Convert} from "../services/convert.ts";
+import { ApiService, Data, Method } from "../services/api/apiService.ts";
+import { ModelErrors } from "../exceptions/modelErrors.ts";
+import { Convert } from "../services/convert.ts";
 
 type ApiServiceConstructor<T extends ApiService> = {
-    new (): T
-    url (params?: string): string,
+    new(): T
+    url(params?: string): string,
 }
 
 export type PaginateModel<T> = {
@@ -25,14 +25,15 @@ export abstract class Model extends ApiService {
     public static async getAll<T extends Model>(this: ApiServiceConstructor<T>, options: RequestInit = {}): Promise<T[]> {
         const request = await fetch(this.url(), {
             headers: {
-                'Content-Type' : "application/json",
+                'Content-Type': "application/json",
                 'Accept': "application/json",
+                'authorization': `Bearer ${localStorage.getItem('token')}`
             },
             ...options
         })
-        if(!request.ok) {
+        if (!request.ok) {
             const errors = await request.json()
-            throw new ModelErrors(errors.message,request.status, errors.errors)
+            throw new ModelErrors(errors.message, request.status, errors.errors)
         }
         return await request.json()
     }
@@ -40,14 +41,16 @@ export abstract class Model extends ApiService {
     public static async getOne<T extends Model>(this: ApiServiceConstructor<T>, id: number | string, options: RequestInit = {}): Promise<T> {
         const request = await fetch(this.url(`/${id}`), {
             headers: {
-                'Content-Type' : "application/json",
+                'Content-Type': "application/json",
                 'Accept': "application/json",
+                'authorization': `Bearer ${localStorage.getItem('token')}`
+
             },
             ...options
         })
-        if(!request.ok) {
+        if (!request.ok) {
             const errors = await request.json()
-            throw new ModelErrors(errors.message,request.status, errors.errors)
+            throw new ModelErrors(errors.message, request.status, errors.errors)
         }
         return (await request.json())
     }
@@ -59,13 +62,15 @@ export abstract class Model extends ApiService {
             method: Method.POST,
             headers: {
                 'Accept': "application/json",
+                'authorization': `Bearer ${localStorage.getItem('token')}`
+
             },
             body: formData,
             ...options
         })
-        if(!request.ok) {
+        if (!request.ok) {
             const errors = await request.json()
-            throw new ModelErrors(errors.message,request.status, errors.errors)
+            throw new ModelErrors(errors.message, request.status, errors.errors)
         }
         return (await request.json()).data
     }
@@ -75,13 +80,15 @@ export abstract class Model extends ApiService {
             method: Method.POST,
             headers: {
                 'Accept': "application/json",
+                'authorization': `Bearer ${localStorage.getItem('token')}`
+
             },
             body: Convert.jsonToFormData(data),
             ...options
         })
-        if(!request.ok) {
+        if (!request.ok) {
             const errors = await request.json()
-            throw new ModelErrors(errors.message,request.status, errors.errors)
+            throw new ModelErrors(errors.message, request.status, errors.errors)
         }
         return (await request.json()).data
     }
@@ -90,8 +97,9 @@ export abstract class Model extends ApiService {
         const request = await fetch(this.url(`/${id}`), {
             method: Method.DELETE,
             headers: {
-                'Content-Type' : "application/json",
+                'Content-Type': "application/json",
                 'Accept': "application/json",
+                'authorization': `Bearer ${localStorage.getItem('token')}`
             },
             ...options
         })
