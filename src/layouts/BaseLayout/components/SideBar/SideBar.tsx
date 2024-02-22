@@ -5,6 +5,8 @@ import styles from "./SideBar.module.scss";
 import { ModelErrors } from "../../../../exceptions/modelErrors";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Styles from "./sideBar.module.scss";
+
 
 export default function SideBar() {
   const [currentWorkspace, setCurrentWorkspace] = useState<WorkspaceModel>();
