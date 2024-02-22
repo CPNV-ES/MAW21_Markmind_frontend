@@ -103,15 +103,3 @@
 .workspace_selector {
   padding: 100px;
 }
-
-.currentWorkspace :hover {
-  background-color: white;
-  border-radius: 10px;
-}
-
-.currentWorkspaceRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-right: 20px;
-}

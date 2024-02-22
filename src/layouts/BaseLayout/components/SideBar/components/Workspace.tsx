@@ -106,7 +106,7 @@ export default function Workspace({ workspace }: WorkspaceProps) {
 
   return (
     <div>
-      <h1 onClick={handleClick} style={{ margin: 0 }}>
+      <h1 onClick={handleClick}>
         {workspace ? workspace : "Choisir un workspace"}
       </h1>
       <WorkspaceModal isOpen={showWorkspaceModal} onClose={onClose} />

@@ -22,7 +22,7 @@ const Modal = ({ isOpen, onClose, children }: ModalProps) => {
   if (!isModalOpen) return null;
 
   return (
-    <div className={styles.row}>
+    <div className={styles.modalContainer}>
       <div className={styles.modal}>
         <div className={styles.modalContent}>{children}</div>
       </div>
