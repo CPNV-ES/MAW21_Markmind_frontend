@@ -1,31 +1,30 @@
-import React, { useState, useRef, Component, useEffect } from 'react';
-import { EditorState, convertToRaw, convertFromRaw } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
-import draftToMarkdown from 'draftjs-to-markdown';
-import { markdownToDraft } from 'markdown-draft-js';
-import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
-import editorStyle from './Editor.module.scss';
+import { EditorState, convertFromRaw, convertToRaw } from "draft-js";
+import draftToMarkdown from "draftjs-to-markdown";
+import { Settings } from "lucide-react";
+import { markdownToDraft } from "markdown-draft-js";
+import { useEffect, useState } from "react";
+import { Editor } from "react-draft-wysiwyg";
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import data from "../../data/workspace";
-import { Settings } from 'lucide-react';
-import EditorSetting from './EditorSetting';
-import CommandSuggestion from './CommandSuggestion';
-
+import CommandSuggestion from "./CommandSuggestion";
+import editorStyle from "./Editor.module.scss";
+import EditorSetting from "./EditorSetting";
 
 export default function MarkdownEditor() {
-  const [markdown, setMarkdown] = useState(data.collections[0].resources[0].content);
+  const [markdown, setMarkdown] = useState(
+    data.collections[0].resources[0].content
+  );
   const [editorSettings, setEditorSettings] = useState({
     isOpen: false,
     autoSave: true,
     saveInterval: 10,
-    backgroundColor: '#000',
-    textColor: '#000',
-    fontSize: '16px',
-    fontFamily: 'Arial',
+    backgroundColor: "#000",
+    textColor: "#000",
+    fontSize: "16px",
+    fontFamily: "Arial",
   });
   const [showCommands, setShowCommands] = useState(false);
   const [currentCommand, setCurrentCommand] = useState("");
-
-
 
   const [editorState, setEditorState] = useState(() => {
     const content = markdownToDraft(markdown);
@@ -74,7 +73,7 @@ export default function MarkdownEditor() {
   const saveContent = () => {
     setMarkdown(getMarkdownOutput());
     console.log("Saved");
-  }
+  };
 
   const handleSettingsChange = (autoSaveValue) => {
     setEditorSettings((prevSettings) => ({
@@ -90,8 +89,7 @@ export default function MarkdownEditor() {
   //useEffect to save content all 10 seconds and if content is changed
   useEffect(() => {
     const interval = setInterval(() => {
-      editorSettings.autoSave &&
-        saveContent();
+      editorSettings.autoSave && saveContent();
     }, 10000);
     return () => clearInterval(interval);
   }, [markdown]);
@@ -99,12 +97,24 @@ export default function MarkdownEditor() {
   return (
     <>
       <div className={editorStyle.settings}>
-        <button onClick={toggleSettings}> <Settings /> </button>
+        <button onClick={toggleSettings}>
+          {" "}
+          <Settings />{" "}
+        </button>
       </div>
-      {
-        editorSettings.isOpen && <EditorSetting settings={editorSettings} onSettingsChange={handleSettingsChange} />
-      }
-      <Editor style={{ backgroundColor: editorSettings.backgroundColor, color: editorSettings.textColor, fontSize: editorSettings.fontSize, fontFamily: editorSettings.fontFamily }}
+      {editorSettings.isOpen && (
+        <EditorSetting
+          settings={editorSettings}
+          onSettingsChange={handleSettingsChange}
+        />
+      )}
+      <Editor
+        style={{
+          backgroundColor: editorSettings.backgroundColor,
+          color: editorSettings.textColor,
+          fontSize: editorSettings.fontSize,
+          fontFamily: editorSettings.fontFamily,
+        }}
         editorState={editorState}
         onEditorStateChange={handleEditorStateChange}
         toolbarClassName={editorStyle.toolbar}
@@ -127,6 +137,5 @@ export default function MarkdownEditor() {
         />
       )}
     </>
-
   );
-};
+}

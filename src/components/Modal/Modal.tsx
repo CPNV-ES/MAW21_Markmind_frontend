@@ -1,8 +1,16 @@
-import { PropsWithChildren, useState } from "react";
+import { PropsWithChildren, useEffect, useState } from "react";
+import styles from "./modal.module.scss";
 
-type ModalProps = { isOpen: boolean; onClose?: () => void } & PropsWithChildren;
+export type ModalProps = {
+  isOpen: boolean;
+  onClose?: () => void;
+} & PropsWithChildren;
 const Modal = ({ isOpen, onClose, children }: ModalProps) => {
   const [isModalOpen, setIsModalOpen] = useState(isOpen);
+
+  useEffect(() => {
+    setIsModalOpen(isOpen);
+  }, [isOpen]);
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -14,12 +22,9 @@ const Modal = ({ isOpen, onClose, children }: ModalProps) => {
   if (!isModalOpen) return null;
 
   return (
-    <div className="modal">
-      <div className="modal-content">
-        <button className="close-button" onClick={closeModal}>
-          X
-        </button>
-        {children}
+    <div className={styles.row}>
+      <div className={styles.modal}>
+        <div className={styles.modalContent}>{children}</div>
       </div>
     </div>
   );

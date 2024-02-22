@@ -1,10 +1,8 @@
-import Resource from "./Resource";
-import type { ResourceProps } from "./Resource";
+import type { Collection } from "../../../../../models/collection";
 import { Collection as CollectionModel } from "../../../../../models/collection";
 import { Resource as ResourceModel } from "../../../../../models/resource";
 import styles from "../SideBar.module.scss";
-import { CiCircleRemove } from "react-icons/ci";
-import type { Collection } from "../../../../../models/collection";
+import Resource from "./Resource";
 
 type CollectionItemProps = { collection: Collection };
 const CollectionItem = ({ collection }: CollectionItemProps) => {
@@ -22,7 +20,7 @@ const CollectionItem = ({ collection }: CollectionItemProps) => {
           <h2>{collection.name}</h2>
         </div>
         <div className={styles.buttons} onClick={handleDeleteClick}>
-          <CiCircleRemove size={15} />
+          {/* <CiCircleRemove size={15} /> */}
         </div>
       </div>
       {collection.resources.map((resource) => {

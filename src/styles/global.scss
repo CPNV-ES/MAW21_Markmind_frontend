@@ -3,3 +3,17 @@ body {
   padding: 0;
   font-family: "Roboto", sans-serif;
 }
+
+.btn-modal-close {
+  background-color: #f5f5f5;
+  border: none;
+  color: #000;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 10px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+}

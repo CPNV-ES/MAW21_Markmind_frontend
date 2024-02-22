@@ -5,12 +5,12 @@
   left: 0;
   top: 0;
   background-color: #f5f5f5;
-    width: 30%;
-    height: 100vh;
-    left: 0;
-    top: 0;
-    padding: 10px;
-    flex:1;
+  width: 30%;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  padding: 10px;
+  flex: 1;
 }
 
 .sidebar h1 {
@@ -54,8 +54,15 @@
 }
 
 .workspaceList {
-  padding: 0;
+  padding: 10px;
   list-style-type: none;
+}
+
+.workspaceSelector {
+  background-color: white;
+  border-radius: 15px;
+  position: absolute;
+  min-width: 280px;
 }
 
 .workspaceItem {
@@ -67,18 +74,19 @@
 }
 
 .workspace_modal_item {
-    background-color: white;
-    padding: 15px;
+  background-color: white;
+  padding: 15px;
 }
 
 .workspace_modal_item:hover {
-    background-color: #f5f5f5;
-    padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  padding: 15px;
 }
 
-.workspace_modal_item_name{
-    display: flex;
-    align-items: center;
+.workspace_modal_item_name {
+  display: flex;
+  align-items: center;
 }
 
 .row {
@@ -86,10 +94,24 @@
   justify-content: space-between;
   align-items: center;
   padding-right: 20px;
-
 }
 
 .buttons {
-  display: flex; 
+  display: flex;
 }
 
+.workspace_selector {
+  padding: 100px;
+}
+
+.currentWorkspace :hover {
+  background-color: white;
+  border-radius: 10px;
+}
+
+.currentWorkspaceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 20px;
+}
