@@ -57,13 +57,11 @@ export abstract class Model extends ApiService {
 
     public static async update<T extends Model>(this: ApiServiceConstructor<T>, id: number | string, data: Data, options: RequestInit = {}): Promise<T> {
         const formData = Convert.jsonToFormData(data);
-        formData.append('_method', Method.PATCH);
         const request = await fetch(this.url(`/${id}`), {
-            method: Method.POST,
+            method: Method.PATCH,
             headers: {
                 'Accept': "application/json",
                 'authorization': `Bearer ${localStorage.getItem('token')}`
-
             },
             body: formData,
             ...options
