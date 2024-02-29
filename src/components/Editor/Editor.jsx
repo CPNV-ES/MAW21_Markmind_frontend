@@ -9,14 +9,20 @@ import data from "../../data/workspace";
 import { Settings } from 'lucide-react';
 import EditorSetting from './EditorSetting';
 import CommandSuggestion from './CommandSuggestion';
+import { Resource } from '../../models/resource';
+import { useParams } from 'react-router-dom';
 
 
 export default function MarkdownEditor() {
-  const [markdown, setMarkdown] = useState(data.collections[0].resources[0].content);
+  /* STATE */
+  const { resourceId } = useParams();
+  const [isContentChanged, setIsContentChanged] = useState(false);
+
+  const [markdown, setMarkdown] = useState('');
   const [editorSettings, setEditorSettings] = useState({
     isOpen: false,
     autoSave: true,
-    saveInterval: 10,
+    saveInterval: 4,
     backgroundColor: '#000',
     textColor: '#000',
     fontSize: '16px',
@@ -24,15 +30,39 @@ export default function MarkdownEditor() {
   });
   const [showCommands, setShowCommands] = useState(false);
   const [currentCommand, setCurrentCommand] = useState("");
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
 
 
 
-  const [editorState, setEditorState] = useState(() => {
-    const content = markdownToDraft(markdown);
-    return EditorState.createWithContent(convertFromRaw(content));
-  });
+
+  /* FUNCTIONS */
+  const debounce = (func, wait) => {
+    let timeout;
+    const executedFunction = function (...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+
+    executedFunction.cancel = () => clearTimeout(timeout);
+
+    return executedFunction;
+  };
 
   const handleEditorStateChange = (newEditorState) => {
+    const contentState = newEditorState.getCurrentContent();
+    const rawContent = convertToRaw(contentState);
+    const markdownOutput = draftToMarkdown(rawContent);
+    setMarkdown(markdownOutput);
+    setIsContentChanged(true);
+
+    setEditorState(newEditorState);
+  };
+
+  /*const handleEditorStateChange = (newEditorState) => {
     const currentContent = newEditorState.getCurrentContent();
     const selectionState = newEditorState.getSelection();
     const anchorKey = selectionState.getAnchorKey();
@@ -40,7 +70,6 @@ export default function MarkdownEditor() {
     const blockText = currentBlock.getText();
     const startOffset = selectionState.getStartOffset();
 
-    // Trouver la position du dernier "/" dans le bloc de texte.
     const slashIndex = blockText.lastIndexOf("/", startOffset);
 
     if (slashIndex !== -1) {
@@ -52,7 +81,7 @@ export default function MarkdownEditor() {
     }
 
     setEditorState(newEditorState);
-  };
+  };*/
 
   const getCursorPos = () => {
     const selection = window.getSelection();
@@ -61,20 +90,31 @@ export default function MarkdownEditor() {
     range.collapse(true);
     const rect = range.getClientRects()[0];
     if (rect) {
-      return { x: rect.left, y: rect.bottom }; // Position en bas à gauche du curseur
+      return { x: rect.left, y: rect.bottom };
     }
     return { x: 0, y: 0 };
   };
 
   const getMarkdownOutput = () => {
     const content = editorState.getCurrentContent();
-    return draftToMarkdown(convertToRaw(content));
+
+    if (!content.hasText()) {
+      return '';
+    }
+    const rawContent = convertToRaw(content);
+    const markdownOutput = draftToMarkdown(rawContent);
+    return markdownOutput;
   };
 
-  const saveContent = () => {
-    setMarkdown(getMarkdownOutput());
-    console.log("Saved");
-  }
+  const saveContent = async () => {
+    if (!isContentChanged) return;
+    try {
+      await Resource.update(parseInt(resourceId) || 2, { content: markdown });
+      setIsContentChanged(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleSettingsChange = (autoSaveValue) => {
     setEditorSettings((prevSettings) => ({
@@ -84,17 +124,44 @@ export default function MarkdownEditor() {
   };
   const toggleSettings = () => {
     setEditorSettings({ ...editorSettings, isOpen: !editorSettings.isOpen });
-    console.log("Is Open:", !editorSettings.isOpen);
   };
 
-  //useEffect to save content all 10 seconds and if content is changed
+  /* UseEffect */
+
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      editorSettings.autoSave &&
+    (async () => {
+      const resource = await Resource.getOne(parseInt(resourceId) || 2);
+      if (resource && resource.content) {
+        setEditorState(EditorState.createWithContent(convertFromRaw(markdownToDraft(resource.content))));
+      }
+    })();
+  }, [resourceId]);
+
+
+  useEffect(() => {
+    const debounceSave = debounce(() => {
+      saveContent();
+    }, editorSettings.saveInterval * 1000);
+
+    if (isContentChanged) {
+      debounceSave();
+    }
+    return () => debounceSave.cancel();
+  }, [markdown, isContentChanged]);
+
+
+
+  useEffect(() => {
+    const handleSave = (e) => {
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
         saveContent();
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [markdown]);
+      }
+    };
+    document.addEventListener('keydown', handleSave);
+    return () => document.removeEventListener('keydown', handleSave);
+  }, []);
 
   return (
     <>
