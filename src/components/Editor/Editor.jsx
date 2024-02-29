@@ -14,10 +14,13 @@ import { useParams } from 'react-router-dom';
 
 
 export default function MarkdownEditor() {
-  const { workspaceId } = useParams();
-  console.log(useParams());
 
-  const [markdown, setMarkdown] = useState(data.collections[0].resources[0].content);
+  const [contentEditorText, setContentEditorText] = useState('');
+
+  /* STATE */
+  const { resourceId } = useParams();
+
+  const [markdown, setMarkdown] = useState('');
   const [editorSettings, setEditorSettings] = useState({
     isOpen: false,
     autoSave: true,
@@ -29,15 +32,29 @@ export default function MarkdownEditor() {
   });
   const [showCommands, setShowCommands] = useState(false);
   const [currentCommand, setCurrentCommand] = useState("");
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
 
 
 
-  const [editorState, setEditorState] = useState(() => {
-    const content = markdownToDraft(markdown);
-    return EditorState.createWithContent(convertFromRaw(content));
-  });
+
+  /* FUNCTIONS */
 
   const handleEditorStateChange = (newEditorState) => {
+    const contentState = newEditorState.getCurrentContent();
+    const rawContent = convertToRaw(contentState);
+    const markdownOutput = draftToMarkdown(rawContent);
+    setContentEditorText(markdownOutput);
+
+    console.log("Markdown Output:", markdownOutput);
+    setMarkdown(markdownOutput);
+
+    setEditorState(newEditorState);
+  };
+
+
+
+
+  /*const handleEditorStateChange = (newEditorState) => {
     const currentContent = newEditorState.getCurrentContent();
     const selectionState = newEditorState.getSelection();
     const anchorKey = selectionState.getAnchorKey();
@@ -45,7 +62,6 @@ export default function MarkdownEditor() {
     const blockText = currentBlock.getText();
     const startOffset = selectionState.getStartOffset();
 
-    // Trouver la position du dernier "/" dans le bloc de texte.
     const slashIndex = blockText.lastIndexOf("/", startOffset);
 
     if (slashIndex !== -1) {
@@ -57,7 +73,7 @@ export default function MarkdownEditor() {
     }
 
     setEditorState(newEditorState);
-  };
+  };*/
 
   const getCursorPos = () => {
     const selection = window.getSelection();
@@ -66,20 +82,30 @@ export default function MarkdownEditor() {
     range.collapse(true);
     const rect = range.getClientRects()[0];
     if (rect) {
-      return { x: rect.left, y: rect.bottom }; // Position en bas à gauche du curseur
+      return { x: rect.left, y: rect.bottom };
     }
     return { x: 0, y: 0 };
   };
 
   const getMarkdownOutput = () => {
     const content = editorState.getCurrentContent();
-    return draftToMarkdown(convertToRaw(content));
+
+    if (!content.hasText()) {
+      return '';
+    }
+    const rawContent = convertToRaw(content);
+    const markdownOutput = draftToMarkdown(rawContent);
+    return markdownOutput;
   };
 
-  const saveContent = () => {
-    setMarkdown(getMarkdownOutput());
-    console.log("Saved");
-  }
+  const saveContent = async () => {
+    try {
+      console.log(contentEditorText);
+      await Resource.update(parseInt(resourceId) || 2, { content: contentEditorText });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleSettingsChange = (autoSaveValue) => {
     setEditorSettings((prevSettings) => ({
@@ -92,29 +118,45 @@ export default function MarkdownEditor() {
     console.log("Is Open:", !editorSettings.isOpen);
   };
 
+  /* UseEffect */
+
+  useEffect(() => {
+    saveContent();
+  }, [contentEditorText]);
+
   useEffect(() => {
     (async () => {
-      try {
-        const resource = await Resource.getOne(parseInt(workspaceId) || 0);
-        setMarkdown(resource.content);
+      const resource = await Resource.getOne(parseInt(resourceId) || 2);
+      if (resource && resource.content) {
+        setEditorState(EditorState.createWithContent(convertFromRaw(markdownToDraft(resource.content))));
       }
-      catch (error) {
-        console.error(error);
-      }
-    }
-    )();
-  }, [workspaceId]);
+    })();
+  }, [resourceId]);
 
-
-
-  //useEffect to save content all 10 seconds and if content is changed
   useEffect(() => {
-    const interval = setInterval(() => {
-      editorSettings.autoSave &&
+    const interval = setInterval(async () => {
+      if (editorSettings.autoSave) {
         saveContent();
-    }, 10000);
+      }
+      else {
+        console.log("Auto Save is off");
+        clearInterval(interval);
+      }
+    }, editorSettings.saveInterval * 10000);
+
     return () => clearInterval(interval);
-  }, [markdown]);
+  }, [editorSettings]);
+
+  useEffect(() => {
+    const handleSave = async (e) => {
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        await saveContent();
+      }
+    };
+    document.addEventListener('keydown', handleSave);
+    return () => document.removeEventListener('keydown', handleSave);
+  }, []);
 
   return (
     <>
