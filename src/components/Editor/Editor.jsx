@@ -14,17 +14,15 @@ import { useParams } from 'react-router-dom';
 
 
 export default function MarkdownEditor() {
-
-  const [contentEditorText, setContentEditorText] = useState('');
-
   /* STATE */
   const { resourceId } = useParams();
+  const [isContentChanged, setIsContentChanged] = useState(false);
 
   const [markdown, setMarkdown] = useState('');
   const [editorSettings, setEditorSettings] = useState({
     isOpen: false,
     autoSave: true,
-    saveInterval: 10,
+    saveInterval: 4,
     backgroundColor: '#000',
     textColor: '#000',
     fontSize: '16px',
@@ -38,21 +36,31 @@ export default function MarkdownEditor() {
 
 
   /* FUNCTIONS */
+  const debounce = (func, wait) => {
+    let timeout;
+    const executedFunction = function (...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+
+    executedFunction.cancel = () => clearTimeout(timeout);
+
+    return executedFunction;
+  };
 
   const handleEditorStateChange = (newEditorState) => {
     const contentState = newEditorState.getCurrentContent();
     const rawContent = convertToRaw(contentState);
     const markdownOutput = draftToMarkdown(rawContent);
-    setContentEditorText(markdownOutput);
-
-    console.log("Markdown Output:", markdownOutput);
     setMarkdown(markdownOutput);
+    setIsContentChanged(true);
 
     setEditorState(newEditorState);
   };
-
-
-
 
   /*const handleEditorStateChange = (newEditorState) => {
     const currentContent = newEditorState.getCurrentContent();
@@ -99,9 +107,10 @@ export default function MarkdownEditor() {
   };
 
   const saveContent = async () => {
+    if (!isContentChanged) return;
     try {
-      console.log(contentEditorText);
-      await Resource.update(parseInt(resourceId) || 2, { content: contentEditorText });
+      await Resource.update(parseInt(resourceId) || 2, { content: markdown });
+      setIsContentChanged(false);
     } catch (error) {
       console.error(error);
     }
@@ -115,14 +124,10 @@ export default function MarkdownEditor() {
   };
   const toggleSettings = () => {
     setEditorSettings({ ...editorSettings, isOpen: !editorSettings.isOpen });
-    console.log("Is Open:", !editorSettings.isOpen);
   };
 
   /* UseEffect */
 
-  useEffect(() => {
-    saveContent();
-  }, [contentEditorText]);
 
   useEffect(() => {
     (async () => {
@@ -133,25 +138,25 @@ export default function MarkdownEditor() {
     })();
   }, [resourceId]);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      if (editorSettings.autoSave) {
-        saveContent();
-      }
-      else {
-        console.log("Auto Save is off");
-        clearInterval(interval);
-      }
-    }, editorSettings.saveInterval * 10000);
-
-    return () => clearInterval(interval);
-  }, [editorSettings]);
 
   useEffect(() => {
-    const handleSave = async (e) => {
+    const debounceSave = debounce(() => {
+      saveContent();
+    }, editorSettings.saveInterval * 1000);
+
+    if (isContentChanged) {
+      debounceSave();
+    }
+    return () => debounceSave.cancel();
+  }, [markdown, isContentChanged]);
+
+
+
+  useEffect(() => {
+    const handleSave = (e) => {
       if (e.ctrlKey && e.key === 's') {
         e.preventDefault();
-        await saveContent();
+        saveContent();
       }
     };
     document.addEventListener('keydown', handleSave);
