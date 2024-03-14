@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mdxeditor/editor": "^2.3.5",
     "draftjs-to-markdown": "^0.6.0",
     "localforage": "^1.10.0",
     "lucide-react": "^0.294.0",

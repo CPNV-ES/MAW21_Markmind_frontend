@@ -1,14 +1,14 @@
+
 import React, { useState, useRef, Component, useEffect } from 'react';
-import { EditorState, convertToRaw, convertFromRaw } from 'draft-js';
+import { EditorState, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
 import { Editor } from 'react-draft-wysiwyg';
 import draftToMarkdown from 'draftjs-to-markdown';
 import { markdownToDraft } from 'markdown-draft-js';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import editorStyle from './Editor.module.scss';
-import data from "../../data/workspace";
 import { Settings } from 'lucide-react';
-import EditorSetting from './EditorSetting';
-import CommandSuggestion from './CommandSuggestion';
+import EditorSetting from '../editorSettings/EditorSetting';
+import CommandSuggestion from '../command/CommandSuggestion';
 import { Resource } from '../../models/resource';
 import { useParams } from 'react-router-dom';
 
@@ -32,9 +32,6 @@ export default function MarkdownEditor() {
   const [currentCommand, setCurrentCommand] = useState("");
   const [editorState, setEditorState] = useState(EditorState.createEmpty());
 
-
-
-
   /* FUNCTIONS */
   const debounce = (func, wait) => {
     let timeout;
@@ -56,17 +53,10 @@ export default function MarkdownEditor() {
     const contentState = newEditorState.getCurrentContent();
     const rawContent = convertToRaw(contentState);
     const markdownOutput = draftToMarkdown(rawContent);
-    setMarkdown(markdownOutput);
-    setIsContentChanged(true);
 
-    setEditorState(newEditorState);
-  };
-
-  /*const handleEditorStateChange = (newEditorState) => {
-    const currentContent = newEditorState.getCurrentContent();
     const selectionState = newEditorState.getSelection();
     const anchorKey = selectionState.getAnchorKey();
-    const currentBlock = currentContent.getBlockForKey(anchorKey);
+    const currentBlock = contentState.getBlockForKey(anchorKey);
     const blockText = currentBlock.getText();
     const startOffset = selectionState.getStartOffset();
 
@@ -80,20 +70,72 @@ export default function MarkdownEditor() {
       setShowCommands(false);
     }
 
-    setEditorState(newEditorState);
-  };*/
+    setMarkdown(markdownOutput);
+    setIsContentChanged(true);
 
-  const getCursorPos = () => {
-    const selection = window.getSelection();
-    if (!selection.rangeCount) return { x: 0, y: 0 };
-    const range = selection.getRangeAt(0).cloneRange();
-    range.collapse(true);
-    const rect = range.getClientRects()[0];
-    if (rect) {
-      return { x: rect.left, y: rect.bottom };
-    }
-    return { x: 0, y: 0 };
+    setEditorState(newEditorState);
   };
+
+
+  const handleCommandSelect = (markdownCommand) => {
+    const currentContent = editorState.getCurrentContent();
+    const selectionState = editorState.getSelection();
+
+    // Trouver le bloc où se trouve le curseur
+    const blockKey = selectionState.getStartKey();
+    const blockText = currentContent.getBlockForKey(blockKey).getText();
+    const slashIndex = blockText.lastIndexOf("/", selectionState.getStartOffset());
+
+    if (slashIndex !== -1) {
+      // Ajuster la sélection pour sélectionner le texte après le "/"
+      const newSelectionState = selectionState.merge({
+        anchorOffset: slashIndex,
+        focusOffset: selectionState.getStartOffset(),
+      });
+
+      // Convertir la commande markdown en format brut compatible avec Draft.js
+      const rawDraftContent = markdownToDraft(markdownCommand);
+
+      if (rawDraftContent) {
+        // Convertir le contenu brut en ContentState
+        const contentState = convertFromRaw(rawDraftContent);
+
+        // S'assurer qu'il y a au moins un bloc de texte
+        if (contentState.getBlockMap().size > 0) {
+          const firstBlockText = contentState.getBlockMap().first().getText();
+
+          // Insérer le texte formaté à la position actuelle
+          const newContentState = Modifier.replaceText(
+            currentContent,
+            newSelectionState,
+            firstBlockText
+          );
+
+          // Créer un nouvel EditorState avec le nouveau contenu
+          let newEditorState = EditorState.push(editorState, newContentState, 'insert-characters');
+
+          // Mettre à jour la sélection à la fin de la commande insérée
+          const finalSelection = newEditorState.getSelection().merge({
+            anchorOffset: slashIndex + firstBlockText.length,
+            focusOffset: slashIndex + firstBlockText.length,
+          });
+          newEditorState = EditorState.forceSelection(newEditorState, finalSelection);
+
+          // Mettre à jour l'état de l'éditeur
+          setEditorState(newEditorState);
+        } else {
+          console.error("Le contenu converti ne contient pas de blocs.");
+        }
+      } else {
+        console.error("Erreur lors de la conversion du markdown en contenu Draft.js.");
+      }
+
+      // Fermer la suggestion de commande
+      setShowCommands(false);
+      setCurrentCommand("");
+    }
+  };
+
 
   const getMarkdownOutput = () => {
     const content = editorState.getCurrentContent();
@@ -163,6 +205,8 @@ export default function MarkdownEditor() {
     return () => document.removeEventListener('keydown', handleSave);
   }, []);
 
+
+
   return (
     <>
       <div className={editorStyle.settings}>
@@ -177,6 +221,13 @@ export default function MarkdownEditor() {
         toolbarClassName={editorStyle.toolbar}
         wrapperClassName={editorStyle.customEditor}
         toolbarOnFocus
+        toolbar={{
+          options: ['inline', 'blockType', 'fontSize', 'list', 'textAlign', 'history', 'link', 'emoji', 'image'],
+          image: {
+            previewImage: true,
+            inputAccept: 'image/gif,image/jpeg,image/jpg,image/png,image/svg',
+          },
+        }}
       />
       {showCommands && (
         <CommandSuggestion
@@ -190,7 +241,6 @@ export default function MarkdownEditor() {
             setShowCommands(false);
             setCurrentCommand("");
           }}
-          position={getCursorPos()}
         />
       )}
     </>
