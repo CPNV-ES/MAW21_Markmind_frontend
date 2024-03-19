@@ -94,8 +94,6 @@ export default function MarkdownEditor() {
 
     setMarkdown(markdownOutput);
     setIsContentChanged(true);
-    console.log("Markdown Output:", markdownOutput);
-
 
     setEditorState(newEditorState);
   };
@@ -166,8 +164,6 @@ export default function MarkdownEditor() {
       await Resource.update(parseInt(resourceId) || 2, { content: markdown });
       setIsContentChanged(false);
 
-      console.log("Saving Content:", markdown);
-
     } catch (error) {
       console.error(error);
     }
@@ -192,8 +188,6 @@ export default function MarkdownEditor() {
       if (resource && resource.content) {
         setEditorState(EditorState.createWithContent(convertFromRaw(markdownToDraft(resource.content))));
       }
-
-      console.log("Loaded Content:", resource.content);
 
     })();
   }, [resourceId]);
