@@ -11,6 +11,9 @@ import EditorSetting from '../editorSettings/EditorSetting';
 import CommandSuggestion from '../command/CommandSuggestion';
 import { Resource } from '../../models/resource';
 import { useParams } from 'react-router-dom';
+import { useEditorOptions } from '../../providers/EditorOptionsProvider';
+import { marked } from 'marked';
+import jsPDF from 'jspdf';
 
 
 export default function MarkdownEditor() {
@@ -19,15 +22,9 @@ export default function MarkdownEditor() {
   const [isContentChanged, setIsContentChanged] = useState(false);
 
   const [markdown, setMarkdown] = useState('');
-  const [editorSettings, setEditorSettings] = useState({
-    isOpen: false,
-    autoSave: true,
-    saveInterval: 4,
-    backgroundColor: '#000',
-    textColor: '#000',
-    fontSize: '16px',
-    fontFamily: 'Arial',
-  });
+  const { editorSettings, updateEditorSettings } = useEditorOptions();
+
+
   const [showCommands, setShowCommands] = useState(false);
   const [currentCommand, setCurrentCommand] = useState("");
   const [editorState, setEditorState] = useState(EditorState.createEmpty());
@@ -47,6 +44,31 @@ export default function MarkdownEditor() {
     executedFunction.cancel = () => clearTimeout(timeout);
 
     return executedFunction;
+  };
+
+  const exportToPDF = () => {
+    const content = editorState.getCurrentContent();
+    const rawContent = convertToRaw(content);
+    const markdown = draftToMarkdown(rawContent);
+    const htmlContent = marked(markdown);
+
+
+    const styledHtml = `
+    <div style="font-size: 12px; max-width: 180mm;">
+      ${htmlContent}
+    </div>
+  `;
+
+    const doc = new jsPDF();
+
+    doc.html(styledHtml, {
+      callback: function (doc) {
+        doc.save('document.pdf');
+      },
+      windowWidth: doc.internal.pageSize.getWidth(),
+      x: 10,
+      y: 10
+    });
   };
 
   const handleEditorStateChange = (newEditorState) => {
@@ -72,6 +94,8 @@ export default function MarkdownEditor() {
 
     setMarkdown(markdownOutput);
     setIsContentChanged(true);
+    console.log("Markdown Output:", markdownOutput);
+
 
     setEditorState(newEditorState);
   };
@@ -81,47 +105,37 @@ export default function MarkdownEditor() {
     const currentContent = editorState.getCurrentContent();
     const selectionState = editorState.getSelection();
 
-    // Trouver le bloc où se trouve le curseur
     const blockKey = selectionState.getStartKey();
     const blockText = currentContent.getBlockForKey(blockKey).getText();
     const slashIndex = blockText.lastIndexOf("/", selectionState.getStartOffset());
 
     if (slashIndex !== -1) {
-      // Ajuster la sélection pour sélectionner le texte après le "/"
       const newSelectionState = selectionState.merge({
         anchorOffset: slashIndex,
         focusOffset: selectionState.getStartOffset(),
       });
 
-      // Convertir la commande markdown en format brut compatible avec Draft.js
       const rawDraftContent = markdownToDraft(markdownCommand);
 
       if (rawDraftContent) {
-        // Convertir le contenu brut en ContentState
         const contentState = convertFromRaw(rawDraftContent);
 
-        // S'assurer qu'il y a au moins un bloc de texte
         if (contentState.getBlockMap().size > 0) {
           const firstBlockText = contentState.getBlockMap().first().getText();
 
-          // Insérer le texte formaté à la position actuelle
           const newContentState = Modifier.replaceText(
             currentContent,
             newSelectionState,
             firstBlockText
           );
 
-          // Créer un nouvel EditorState avec le nouveau contenu
           let newEditorState = EditorState.push(editorState, newContentState, 'insert-characters');
 
-          // Mettre à jour la sélection à la fin de la commande insérée
           const finalSelection = newEditorState.getSelection().merge({
             anchorOffset: slashIndex + firstBlockText.length,
             focusOffset: slashIndex + firstBlockText.length,
           });
           newEditorState = EditorState.forceSelection(newEditorState, finalSelection);
-
-          // Mettre à jour l'état de l'éditeur
           setEditorState(newEditorState);
         } else {
           console.error("Le contenu converti ne contient pas de blocs.");
@@ -129,8 +143,6 @@ export default function MarkdownEditor() {
       } else {
         console.error("Erreur lors de la conversion du markdown en contenu Draft.js.");
       }
-
-      // Fermer la suggestion de commande
       setShowCommands(false);
       setCurrentCommand("");
     }
@@ -153,6 +165,9 @@ export default function MarkdownEditor() {
     try {
       await Resource.update(parseInt(resourceId) || 2, { content: markdown });
       setIsContentChanged(false);
+
+      console.log("Saving Content:", markdown);
+
     } catch (error) {
       console.error(error);
     }
@@ -165,7 +180,7 @@ export default function MarkdownEditor() {
     }));
   };
   const toggleSettings = () => {
-    setEditorSettings({ ...editorSettings, isOpen: !editorSettings.isOpen });
+    updateEditorSettings('isOpen', !editorSettings.isOpen);
   };
 
   /* UseEffect */
@@ -177,6 +192,9 @@ export default function MarkdownEditor() {
       if (resource && resource.content) {
         setEditorState(EditorState.createWithContent(convertFromRaw(markdownToDraft(resource.content))));
       }
+
+      console.log("Loaded Content:", resource.content);
+
     })();
   }, [resourceId]);
 
@@ -206,6 +224,7 @@ export default function MarkdownEditor() {
   }, []);
 
 
+  console.log(editorSettings);
 
   return (
     <>
@@ -213,9 +232,9 @@ export default function MarkdownEditor() {
         <button onClick={toggleSettings}> <Settings /> </button>
       </div>
       {
-        editorSettings.isOpen && <EditorSetting settings={editorSettings} onSettingsChange={handleSettingsChange} />
+        editorSettings.isOpen && <EditorSetting exportToPDF={exportToPDF} />
       }
-      <Editor style={{ backgroundColor: editorSettings.backgroundColor, color: editorSettings.textColor, fontSize: editorSettings.fontSize, fontFamily: editorSettings.fontFamily }}
+      <Editor
         editorState={editorState}
         onEditorStateChange={handleEditorStateChange}
         toolbarClassName={editorStyle.toolbar}
@@ -228,21 +247,29 @@ export default function MarkdownEditor() {
             inputAccept: 'image/gif,image/jpeg,image/jpg,image/png,image/svg',
           },
         }}
+        editorStyle={{
+          backgroundColor: editorSettings.backgroundColor,
+          color: editorSettings.textColor,
+          fontSize: editorSettings.fontSize,
+          fontFamily: editorSettings.fontFamily,
+        }}
       />
-      {showCommands && (
-        <CommandSuggestion
-          command={currentCommand}
-          onSelect={(markdown) => {
-            handleCommandSelect(markdown);
-            setShowCommands(false);
-            setCurrentCommand("");
-          }}
-          onClose={() => {
-            setShowCommands(false);
-            setCurrentCommand("");
-          }}
-        />
-      )}
+      {
+        showCommands && (
+          <CommandSuggestion
+            command={currentCommand}
+            onSelect={(markdown) => {
+              handleCommandSelect(markdown);
+              setShowCommands(false);
+              setCurrentCommand("");
+            }}
+            onClose={() => {
+              setShowCommands(false);
+              setCurrentCommand("");
+            }}
+          />
+        )
+      }
     </>
 
   );
