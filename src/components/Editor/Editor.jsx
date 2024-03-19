@@ -224,8 +224,6 @@ export default function MarkdownEditor() {
   }, []);
 
 
-  console.log(editorSettings);
-
   return (
     <>
       <div className={editorStyle.settings}>
