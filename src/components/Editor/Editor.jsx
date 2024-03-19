@@ -1,16 +1,19 @@
+
 import React, { useState, useRef, Component, useEffect } from 'react';
-import { EditorState, convertToRaw, convertFromRaw } from 'draft-js';
+import { EditorState, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
 import { Editor } from 'react-draft-wysiwyg';
 import draftToMarkdown from 'draftjs-to-markdown';
 import { markdownToDraft } from 'markdown-draft-js';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import editorStyle from './Editor.module.scss';
-import data from "../../data/workspace";
 import { Settings } from 'lucide-react';
-import EditorSetting from './EditorSetting';
-import CommandSuggestion from './CommandSuggestion';
+import EditorSetting from '../editorSettings/EditorSetting';
+import CommandSuggestion from '../command/CommandSuggestion';
 import { Resource } from '../../models/resource';
 import { useParams } from 'react-router-dom';
+import { useEditorOptions } from '../../providers/EditorOptionsProvider';
+import { marked } from 'marked';
+import jsPDF from 'jspdf';
 
 
 export default function MarkdownEditor() {
@@ -19,21 +22,12 @@ export default function MarkdownEditor() {
   const [isContentChanged, setIsContentChanged] = useState(false);
 
   const [markdown, setMarkdown] = useState('');
-  const [editorSettings, setEditorSettings] = useState({
-    isOpen: false,
-    autoSave: true,
-    saveInterval: 4,
-    backgroundColor: '#000',
-    textColor: '#000',
-    fontSize: '16px',
-    fontFamily: 'Arial',
-  });
+  const { editorSettings, updateEditorSettings } = useEditorOptions();
+
+
   const [showCommands, setShowCommands] = useState(false);
   const [currentCommand, setCurrentCommand] = useState("");
   const [editorState, setEditorState] = useState(EditorState.createEmpty());
-
-
-
 
   /* FUNCTIONS */
   const debounce = (func, wait) => {
@@ -52,21 +46,39 @@ export default function MarkdownEditor() {
     return executedFunction;
   };
 
+  const exportToPDF = () => {
+    const content = editorState.getCurrentContent();
+    const rawContent = convertToRaw(content);
+    const markdown = draftToMarkdown(rawContent);
+    const htmlContent = marked(markdown);
+
+
+    const styledHtml = `
+    <div style="font-size: 12px; max-width: 180mm;">
+      ${htmlContent}
+    </div>
+  `;
+
+    const doc = new jsPDF();
+
+    doc.html(styledHtml, {
+      callback: function (doc) {
+        doc.save('document.pdf');
+      },
+      windowWidth: doc.internal.pageSize.getWidth(),
+      x: 10,
+      y: 10
+    });
+  };
+
   const handleEditorStateChange = (newEditorState) => {
     const contentState = newEditorState.getCurrentContent();
     const rawContent = convertToRaw(contentState);
     const markdownOutput = draftToMarkdown(rawContent);
-    setMarkdown(markdownOutput);
-    setIsContentChanged(true);
 
-    setEditorState(newEditorState);
-  };
-
-  /*const handleEditorStateChange = (newEditorState) => {
-    const currentContent = newEditorState.getCurrentContent();
     const selectionState = newEditorState.getSelection();
     const anchorKey = selectionState.getAnchorKey();
-    const currentBlock = currentContent.getBlockForKey(anchorKey);
+    const currentBlock = contentState.getBlockForKey(anchorKey);
     const blockText = currentBlock.getText();
     const startOffset = selectionState.getStartOffset();
 
@@ -80,20 +92,62 @@ export default function MarkdownEditor() {
       setShowCommands(false);
     }
 
-    setEditorState(newEditorState);
-  };*/
+    setMarkdown(markdownOutput);
+    setIsContentChanged(true);
+    console.log("Markdown Output:", markdownOutput);
 
-  const getCursorPos = () => {
-    const selection = window.getSelection();
-    if (!selection.rangeCount) return { x: 0, y: 0 };
-    const range = selection.getRangeAt(0).cloneRange();
-    range.collapse(true);
-    const rect = range.getClientRects()[0];
-    if (rect) {
-      return { x: rect.left, y: rect.bottom };
-    }
-    return { x: 0, y: 0 };
+
+    setEditorState(newEditorState);
   };
+
+
+  const handleCommandSelect = (markdownCommand) => {
+    const currentContent = editorState.getCurrentContent();
+    const selectionState = editorState.getSelection();
+
+    const blockKey = selectionState.getStartKey();
+    const blockText = currentContent.getBlockForKey(blockKey).getText();
+    const slashIndex = blockText.lastIndexOf("/", selectionState.getStartOffset());
+
+    if (slashIndex !== -1) {
+      const newSelectionState = selectionState.merge({
+        anchorOffset: slashIndex,
+        focusOffset: selectionState.getStartOffset(),
+      });
+
+      const rawDraftContent = markdownToDraft(markdownCommand);
+
+      if (rawDraftContent) {
+        const contentState = convertFromRaw(rawDraftContent);
+
+        if (contentState.getBlockMap().size > 0) {
+          const firstBlockText = contentState.getBlockMap().first().getText();
+
+          const newContentState = Modifier.replaceText(
+            currentContent,
+            newSelectionState,
+            firstBlockText
+          );
+
+          let newEditorState = EditorState.push(editorState, newContentState, 'insert-characters');
+
+          const finalSelection = newEditorState.getSelection().merge({
+            anchorOffset: slashIndex + firstBlockText.length,
+            focusOffset: slashIndex + firstBlockText.length,
+          });
+          newEditorState = EditorState.forceSelection(newEditorState, finalSelection);
+          setEditorState(newEditorState);
+        } else {
+          console.error("Le contenu converti ne contient pas de blocs.");
+        }
+      } else {
+        console.error("Erreur lors de la conversion du markdown en contenu Draft.js.");
+      }
+      setShowCommands(false);
+      setCurrentCommand("");
+    }
+  };
+
 
   const getMarkdownOutput = () => {
     const content = editorState.getCurrentContent();
@@ -111,6 +165,9 @@ export default function MarkdownEditor() {
     try {
       await Resource.update(parseInt(resourceId) || 2, { content: markdown });
       setIsContentChanged(false);
+
+      console.log("Saving Content:", markdown);
+
     } catch (error) {
       console.error(error);
     }
@@ -123,7 +180,7 @@ export default function MarkdownEditor() {
     }));
   };
   const toggleSettings = () => {
-    setEditorSettings({ ...editorSettings, isOpen: !editorSettings.isOpen });
+    updateEditorSettings('isOpen', !editorSettings.isOpen);
   };
 
   /* UseEffect */
@@ -135,6 +192,9 @@ export default function MarkdownEditor() {
       if (resource && resource.content) {
         setEditorState(EditorState.createWithContent(convertFromRaw(markdownToDraft(resource.content))));
       }
+
+      console.log("Loaded Content:", resource.content);
+
     })();
   }, [resourceId]);
 
@@ -163,36 +223,53 @@ export default function MarkdownEditor() {
     return () => document.removeEventListener('keydown', handleSave);
   }, []);
 
+
+  console.log(editorSettings);
+
   return (
     <>
       <div className={editorStyle.settings}>
         <button onClick={toggleSettings}> <Settings /> </button>
       </div>
       {
-        editorSettings.isOpen && <EditorSetting settings={editorSettings} onSettingsChange={handleSettingsChange} />
+        editorSettings.isOpen && <EditorSetting exportToPDF={exportToPDF} />
       }
-      <Editor style={{ backgroundColor: editorSettings.backgroundColor, color: editorSettings.textColor, fontSize: editorSettings.fontSize, fontFamily: editorSettings.fontFamily }}
+      <Editor
         editorState={editorState}
         onEditorStateChange={handleEditorStateChange}
         toolbarClassName={editorStyle.toolbar}
         wrapperClassName={editorStyle.customEditor}
         toolbarOnFocus
+        toolbar={{
+          options: ['inline', 'blockType', 'fontSize', 'list', 'textAlign', 'history', 'link', 'emoji', 'image'],
+          image: {
+            previewImage: true,
+            inputAccept: 'image/gif,image/jpeg,image/jpg,image/png,image/svg',
+          },
+        }}
+        editorStyle={{
+          backgroundColor: editorSettings.backgroundColor,
+          color: editorSettings.textColor,
+          fontSize: editorSettings.fontSize,
+          fontFamily: editorSettings.fontFamily,
+        }}
       />
-      {showCommands && (
-        <CommandSuggestion
-          command={currentCommand}
-          onSelect={(markdown) => {
-            handleCommandSelect(markdown);
-            setShowCommands(false);
-            setCurrentCommand("");
-          }}
-          onClose={() => {
-            setShowCommands(false);
-            setCurrentCommand("");
-          }}
-          position={getCursorPos()}
-        />
-      )}
+      {
+        showCommands && (
+          <CommandSuggestion
+            command={currentCommand}
+            onSelect={(markdown) => {
+              handleCommandSelect(markdown);
+              setShowCommands(false);
+              setCurrentCommand("");
+            }}
+            onClose={() => {
+              setShowCommands(false);
+              setCurrentCommand("");
+            }}
+          />
+        )
+      }
     </>
 
   );
