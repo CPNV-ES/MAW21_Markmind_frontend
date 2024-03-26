@@ -1,19 +1,16 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import {RouterProvider} from 'react-router-dom';
-import router from './router/Router';
-import "./styles/global.scss"
+import "@/assets/css/app.css";
+import { router } from "@/router";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { RouterProvider } from "react-router-dom";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const queryClient = new QueryClient();
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <RouterProvider router={router}  />
-  </React.StrictMode>,
-)
-
-// Remove Preload scripts loading
-postMessage({ payload: 'removeLoading' }, '*')
-
-// Use contextBridge
-window.ipcRenderer.on('main-process-message', (_event, message) => {
-  console.log(message)
-})
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router}></RouterProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
+);
