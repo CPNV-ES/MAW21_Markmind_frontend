@@ -9,17 +9,19 @@ import editorStyle from './Editor.module.scss';
 import { Settings } from 'lucide-react';
 import EditorSetting from '../editorSettings/EditorSetting';
 import CommandSuggestion from '../command/CommandSuggestion';
-import { useParams } from 'react-router-dom';
 import { useEditorOptions } from '../../providers/EditorOptionsProvider';
 import { marked } from 'marked';
 import jsPDF from 'jspdf';
 
 import ResourceRepository from '../../repositories/ResourceRepository';
+import { useResource } from '../../providers/ResourceProvider';
 
 
 export default function MarkdownEditor() {
   /* STATE */
-  const { resourceId } = useParams();
+
+  const { resourceId } = useResource();
+
   const [isContentChanged, setIsContentChanged] = useState(false);
 
   const [markdown, setMarkdown] = useState('');
@@ -162,7 +164,7 @@ export default function MarkdownEditor() {
   const saveContent = async () => {
     if (!isContentChanged) return;
     try {
-      await ResourceRepository.update(parseInt(resourceId) || 2, { content: markdown });
+      await ResourceRepository.update(parseInt(resourceId), { content: markdown });
       setIsContentChanged(false);
 
     } catch (error) {
@@ -180,7 +182,7 @@ export default function MarkdownEditor() {
 
   useEffect(() => {
     (async () => {
-      const resource = await ResourceRepository.one(parseInt(resourceId) || 2);
+      const resource = await ResourceRepository.one(parseInt(resourceId));
       if (resource && resource.content) {
         setEditorState(EditorState.createWithContent(convertFromRaw(markdownToDraft(resource.content))));
       }

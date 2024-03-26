@@ -3,6 +3,8 @@ import GuestLayout from "@/layouts/GuestLayout/GuestLayout.tsx";
 import Home from "@/pages/Home/home";
 import Login from "@/pages/Login/Login.tsx";
 import { createBrowserRouter } from "react-router-dom";
+import Editor from "@/components/Editor/Editor";
+import { EditorOptionsProvider } from "@/providers/EditorOptionsProvider";
 
 export const router = createBrowserRouter([
   {
