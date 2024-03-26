@@ -1,4 +1,4 @@
-import { CreateResourceRequest } from "@/types/resources";
+import { CreateResourceRequest, Resource } from "@/types/resources";
 import Repository from "./repository";
 
 export default class ResourceRepository extends Repository {
@@ -11,5 +11,15 @@ export default class ResourceRepository extends Repository {
       body: JSON.stringify(resource),
     });
     if (!response.ok) throw new Error(response.statusText);
+  }
+
+  public static async one(id: number | string): Promise<Resource> {
+    const response = await fetch(`${this.endpoint}/${id}`, {
+      method: "GET",
+      headers: this.getHeaders(),
+    });
+    if (!response.ok) throw new Error(response.statusText);
+
+    return (await response.json()) as Resource;
   }
 }
