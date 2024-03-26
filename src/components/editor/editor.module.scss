@@ -1,0 +1,52 @@
+.customEditor {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    border: 1px solid #ccc;
+    position: relative;
+    height: 100vh;
+    padding: 1rem 0.5rem 0 1rem;
+    width: 100%;
+}
+
+
+.toolbar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0.5rem;
+    border-top: 1px solid #ccc;
+    position: absolute;
+    bottom: 10%;
+    width: 95%;
+    z-index: 10;
+    opacity: 0.4;
+    border-radius: 20px;
+    z-index: 2;
+
+    &__button {
+        background-color: #e81919;
+        color: yellowgreen;
+    }
+
+    &:hover {
+        opacity: 1;
+        transition: opacity 0.5s;
+    }
+}
+
+.settings {
+    display: flex;
+    position: absolute;
+    top: 1%;
+    right: 1%;
+    z-index: 100;
+
+    &>button {
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+}
+
+  

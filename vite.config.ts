@@ -1,0 +1,31 @@
+import react from "@vitejs/plugin-react";
+import path from "path";
+import { defineConfig } from "vite";
+import electron from "vite-plugin-electron/simple";
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    electron({
+      main: {
+        // Shortcut of `build.lib.entry`.
+        entry: "electron/main.ts",
+      },
+      preload: {
+        // Shortcut of `build.rollupOptions.input`.
+        // Preload scripts may contain Web assets, so use the `build.rollupOptions.input` instead `build.lib.entry`.
+        input: path.join(__dirname, "electron/preload.ts"),
+      },
+      renderer: {},
+    }),
+  ],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  define: {
+    global: {},
+  },
+});
