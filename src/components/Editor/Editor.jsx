@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, Component, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { EditorState, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
 import { Editor } from 'react-draft-wysiwyg';
 import draftToMarkdown from 'draftjs-to-markdown';
@@ -9,11 +9,12 @@ import editorStyle from './Editor.module.scss';
 import { Settings } from 'lucide-react';
 import EditorSetting from '../editorSettings/EditorSetting';
 import CommandSuggestion from '../command/CommandSuggestion';
-import { Resource } from '../../models/resource';
 import { useParams } from 'react-router-dom';
 import { useEditorOptions } from '../../providers/EditorOptionsProvider';
 import { marked } from 'marked';
 import jsPDF from 'jspdf';
+
+import ResourceRepository from '../../repositories/ResourceRepository';
 
 
 export default function MarkdownEditor() {
@@ -161,7 +162,7 @@ export default function MarkdownEditor() {
   const saveContent = async () => {
     if (!isContentChanged) return;
     try {
-      await Resource.update(parseInt(resourceId) || 2, { content: markdown });
+      await ResourceRepository.update(parseInt(resourceId) || 2, { content: markdown });
       setIsContentChanged(false);
 
     } catch (error) {
@@ -169,12 +170,7 @@ export default function MarkdownEditor() {
     }
   };
 
-  const handleSettingsChange = (autoSaveValue) => {
-    setEditorSettings((prevSettings) => ({
-      ...prevSettings,
-      autoSave: autoSaveValue,
-    }));
-  };
+
   const toggleSettings = () => {
     updateEditorSettings('isOpen', !editorSettings.isOpen);
   };
@@ -184,7 +180,7 @@ export default function MarkdownEditor() {
 
   useEffect(() => {
     (async () => {
-      const resource = await Resource.getOne(parseInt(resourceId) || 2);
+      const resource = await ResourceRepository.one(parseInt(resourceId) || 2);
       if (resource && resource.content) {
         setEditorState(EditorState.createWithContent(convertFromRaw(markdownToDraft(resource.content))));
       }

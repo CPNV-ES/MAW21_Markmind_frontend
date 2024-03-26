@@ -22,4 +22,13 @@ export default class ResourceRepository extends Repository {
 
     return (await response.json()) as Resource;
   }
+
+  public static update = async (id: number | string, resource: CreateResourceRequest): Promise<void> => {
+    const response = await fetch(`${this.endpoint}/${id}`, {
+      method: "PUT",
+      headers: this.getHeaders(),
+      body: JSON.stringify(resource),
+    });
+    if (!response.ok) throw new Error(response.statusText);
+  }
 }
