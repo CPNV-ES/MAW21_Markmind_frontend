@@ -1,7 +1,6 @@
-import { EditorOptionsProvider } from "../../providers/EditorOptionsProvider.jsx";
-import Editor from "../../components/editor/Editor";
-import React from "react";
 import { useParams } from "react-router-dom";
+import Editor from "../../components/editor/Editor.jsx";
+import { EditorOptionsProvider } from "../../providers/EditorOptionsProvider.jsx";
 
 export default function Home() {
   const { workspaceId } = useParams();
@@ -9,5 +8,5 @@ export default function Home() {
     <EditorOptionsProvider>
       <Editor />
     </EditorOptionsProvider>
-  )
+  );
 }
