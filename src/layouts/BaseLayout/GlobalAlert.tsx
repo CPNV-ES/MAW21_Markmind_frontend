@@ -1,4 +1,4 @@
-import Modal from "@/components/Modal/Modal";
+import Modal from "@/components/modal/Modal";
 import { useAlert } from "@/hooks/useAlert";
 
 export default function GlobalAlert() {

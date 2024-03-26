@@ -1,6 +1,6 @@
 import React from 'react';
 import style from './editorSetting.module.scss';
-import { useEditorOptions } from '../../providers/EditorOptionsProvider';
+import { useEditorOptions } from '@/providers/EditorOptionsProvider';
 
 export default function EditorSetting({ exportToPDF }) {
     const { editorSettings, updateEditorSettings } = useEditorOptions();

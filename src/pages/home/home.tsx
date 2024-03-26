@@ -1,4 +1,4 @@
-import Editor from "@/components/Editor/Editor.jsx";
+import Editor from "@/components/editor/Editor.jsx";
 import { EditorOptionsProvider } from "@/providers/EditorOptionsProvider";
 
 export default function Home() {

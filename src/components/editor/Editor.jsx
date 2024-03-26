@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { EditorState, convertToRaw, convertFromRaw, Modifier } from 'draft-js';
 import { Editor } from 'react-draft-wysiwyg';
 import draftToMarkdown from 'draftjs-to-markdown';
@@ -7,14 +7,14 @@ import { markdownToDraft } from 'markdown-draft-js';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import editorStyle from './Editor.module.scss';
 import { Settings } from 'lucide-react';
-import EditorSetting from '../editorSettings/EditorSetting';
-import CommandSuggestion from '../command/CommandSuggestion';
-import { useEditorOptions } from '../../providers/EditorOptionsProvider';
+import EditorSetting from '@/components/editorSettings/EditorSetting';
+import CommandSuggestion from '@/components/command/CommandSuggestion';
+import { useEditorOptions } from '@/providers/EditorOptionsProvider';
 import { marked } from 'marked';
 import jsPDF from 'jspdf';
 
-import ResourceRepository from '../../repositories/ResourceRepository';
-import { useResource } from '../../providers/ResourceProvider';
+import ResourceRepository from '@/repositories/ResourceRepository';
+import { useResource } from '@/providers/ResourceProvider';
 
 
 export default function MarkdownEditor() {
